@@ -1,0 +1,41 @@
+version: v2beta1
+name: main-project
+
+pipelines:
+  deploy:
+    run: |-
+      run_dependencies --all
+      ensure_pull_secrets --all
+      create_deployments --all
+
+deployments:
+  main-project:
+    helm:
+      chart:
+        name: component-chart
+        repo: https://charts.devspace.sh
+      values:
+        containers:
+          - image: 123456789.dkr.ecr.eu-west-1.amazonaws.com/main-project:main-project-tag
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: INTROSPECTION_ENABLED
+              value: ${INTROSPECTION_ENABLED}
+            - name: SERVICES
+              value: ${SERVICES}
+
+        service:
+          ports:
+            - port: 4000
+    namespace: ${DEVSPACE_NAME}
+
+pullSecrets:
+  aws-ecr:
+    registry: 123456789.dkr.ecr.eu-west-1.amazonaws.com
+
+dependencies:
+  sub-project:
+    path: ../sub-project
+
+vars:
+  DEVSPACE_FLAGS: --namespace main-project

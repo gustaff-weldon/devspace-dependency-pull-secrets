@@ -1,0 +1,31 @@
+version: v2beta1
+name: sub-project
+
+pipelines:
+  deploy:
+    run: |-
+      run_dependencies --all
+      ensure_pull_secrets --all
+      create_deployments --all
+
+deployments:
+  sub-project:
+    helm:
+      chart:
+        name: component-chart
+        repo: https://charts.devspace.sh
+      values:
+        containers:
+          - image: 123456789.dkr.ecr.eu-west-1.amazonaws.com/sub-project:sub-project-tag
+            imagePullPolicy: IfNotPresent
+        service:
+          ports:
+            - port: 8080
+    namespace: ${DEVSPACE_NAME}
+
+pullSecrets:
+  aws-ecr:
+    registry: 123456789.dkr.ecr.eu-west-1.amazonaws.com
+
+vars:
+  DEVSPACE_FLAGS: --namespace sub-project
